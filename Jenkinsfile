@@ -6,15 +6,15 @@ pipeline {
                sh './mvnw -Dmaven.test.failure.ignore=true clean verify'
             }
         }
-        stage('Test') { 
-            steps {
+        //stage('Test') { 
+            //steps {
                 // 
-            }
-        }
-        stage('Deploy') { 
-            steps {
+            //}
+        //}
+        //stage('Deploy') { 
+           // steps {
                 // 
-            }
-        }
+            //}
+        //}
     }
 }
