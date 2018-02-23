@@ -1,34 +1,52 @@
-node {
+import groovy.json.JsonSlurper;
  
-    withMaven(maven:'maven') {
+node{
+    stage 'Build, Test and Package'
+    env.PATH = "${tool 'apache-maven-3.3.9'}/bin:${env.PATH}"
+    git url: "https://github.com/vspdontukurthi/samplespringboot.git"
+    // workaround, taken from https://github.com/jenkinsci/pipeline-examples/blob/master/pipeline-examples/gitcommit/gitcommit.groovy
+    def commitid = sh(returnStdout: true, script: 'git rev-parse HEAD').trim()
+    def workspacePath = pwd()
+    sh "echo ${commitid} > ${workspacePath}/expectedCommitid.txt"
+    sh "mvn clean package -Dcommitid=${commitid}"
+}
  
-        stage('Checkout') {
-            git url: 'https://github.com/vspdontukurthi/samplespringboot.git', credentialsId: 'vspdontukurthi', branch: 'master'
-        }
+node{
+    stage 'Stop, Deploy and Start'
+    // shutdown
+    sh 'curl -X POST http://localhost:10000/shutdown || true'
+    // copy file to target location
+    sh 'cp target/*.jar /tmp/'
+    // start the application
+    sh 'nohup java -jar /tmp/*.jar &'
+    // wait for application to respond
+    sh 'while ! httping -qc1 http://localhost:10000 ; do sleep 1 ; done'
+}
  
-        stage('Build') {
-            sh 'mvn clean install'
- 
-            def pom = readMavenPom file:'pom.xml'
-            print pom.version
-            env.version = pom.version
-        }
- 
-        stage('Image') {
-            dir ('discovery-service') {
-                def app = docker.build "localhost:5000/discovery-service:${env.version}"
-                app.push()
-            }
-        }
- 
-        stage ('Run') {
-            docker.image("localhost:5000/discovery-service:${env.version}").run('-p 8761:8761 -h discovery --name discovery')
-        }
- 
-        stage ('Final') {
-            build job: 'sample springboot pipe line', wait: false
-        }      
- 
+node{
+    stage 'Smoketest'
+    def workspacePath = pwd()
+    sh "curl --retry-delay 10 --retry 5 http://localhost:10000/info -o ${workspacePath}/info.json"
+    if (deploymentOk()){
+        return 0
+    } else {
+        return 1
     }
+}
  
+def deploymentOk(){
+    def workspacePath = pwd()
+    expectedCommitid = new File("${workspacePath}/expectedCommitid.txt").text.trim()
+    actualCommitid = readCommitidFromJson()
+    println "expected commitid from txt: ${expectedCommitid}"
+    println "actual commitid from json: ${actualCommitid}"
+    return expectedCommitid == actualCommitid
+}
+ 
+def readCommitidFromJson() {
+    def workspacePath = pwd()
+    def slurper = new JsonSlurper()
+    def json = slurper.parseText(new File("${workspacePath}/info.json").text)
+    def commitid = json.app.commitid
+    return commitid
 }
