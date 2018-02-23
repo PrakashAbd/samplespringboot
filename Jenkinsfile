@@ -1,26 +1,20 @@
-node {
- 
-    withMaven(maven:'maven') {
- 
-        stage('Build') {
-            sh 'mvn clean install'
-        }
- 
-        stage('Image') {
-            dir ('samplespringboot') {
-                def app = docker.build "localhost:5000/samplespringboot:${env.version}"
-                app.push()
+pipeline {
+    agent any 
+    stages {
+        stage('Build') { 
+            steps {
+               sh './mvnw -Dmaven.test.failure.ignore=true clean verify'
             }
         }
- 
-        stage ('Run') {
-            docker.image("localhost:5000/samplespringboot:${env.version}").run('-p 2222:2222 -h samplespringboot --name samplespringboot --link discovery')
+        stage('Test') { 
+            steps {
+                // 
+            }
         }
- 
-        stage ('Final') {
-            build job: 'samplespringboot-pipeline', wait: false
-        }      
- 
+        stage('Deploy') { 
+            steps {
+                // 
+            }
+        }
     }
- 
 }
