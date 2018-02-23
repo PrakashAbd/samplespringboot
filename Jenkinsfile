@@ -4,14 +4,10 @@ node {
  
         stage('Build') {
             sh 'mvn clean install'
- 
-            def pom = readMavenPom file:'pom.xml'
-            print pom.version
-            env.version = pom.version
         }
  
         stage('Image') {
-            dir ('account-service') {
+            dir ('samplespringboot') {
                 def app = docker.build "localhost:5000/samplespringboot:${env.version}"
                 app.push()
             }
