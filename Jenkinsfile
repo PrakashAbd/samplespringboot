@@ -2,7 +2,6 @@ import groovy.json.JsonSlurper;
  
 node{
     stage 'Build, Test and Package'
-    env.PATH = "${tool 'apache-maven-3.5.2'}/bin:${env.PATH}"
     git url: "https://github.com/vspdontukurthi/samplespringboot.git"
     // workaround, taken from https://github.com/jenkinsci/pipeline-examples/blob/master/pipeline-examples/gitcommit/gitcommit.groovy
     def commitid = sh(returnStdout: true, script: 'git rev-parse HEAD').trim()
