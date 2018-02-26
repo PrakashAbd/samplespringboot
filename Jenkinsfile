@@ -43,6 +43,7 @@ def deploymentOk(){
 }
  
 def readCommitidFromJson() {
+    println "*** read commit ***"
     def workspacePath = pwd()
     def slurper = new JsonSlurper()
     def json = slurper.parseText(new File("${workspacePath}/info.json").text)
