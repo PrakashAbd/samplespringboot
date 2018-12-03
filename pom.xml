@@ -4,6 +4,7 @@
 	<groupId>samplespringboot</groupId>
 	<artifactId>samplespringboot</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
+	<packaging>war</packaging>
 	<name>samplespringboot</name>
 	<description>samplespringboot</description>
 
