@@ -36,7 +36,7 @@ pipeline {
     withSonarQubeEnv('SonarQube') {
       sh 'mvn sonar:sonar \
         -Dsonar.host.url=http://jekai38211dns.eastus.cloudapp.azure.com \
-        -Dsonar.login=795e7bd8dcdeff3c705fb8657c918017c30d5bb7 
+        -Dsonar.login=795e7bd8dcdeff3c705fb8657c918017c30d5bb7' 
  
 
     }
