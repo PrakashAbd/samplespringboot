@@ -28,13 +28,17 @@ pipeline {
         }
         
         stage('SCM') {
-    git 'https://github.com/foo/bar.git'
+    git 'https://github.com/PrakashAbd/samplespringboot.git'
   }
   stage('SonarQube analysis') {
     // requires SonarQube Scanner 2.8+
-    def scannerHome = tool 'SonarQube Scanner 2.8';
-    withSonarQubeEnv('My SonarQube Server') {
-      sh "${scannerHome}/bin/sonar-scanner"
+   
+    withSonarQubeEnv('SonarQube') {
+      sh 'mvn sonar:sonar \
+        -Dsonar.host.url=http://jekai38211dns.eastus.cloudapp.azure.com \
+        -Dsonar.login=795e7bd8dcdeff3c705fb8657c918017c30d5bb7 
+ 
+
     }
   }
     }
