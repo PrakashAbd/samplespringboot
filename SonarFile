@@ -1,6 +1,6 @@
 node{
    stage('SCM Checkout'){
-     git 'https://github.com/PraksahAbd/samplespringboot.git'
+     git 'https://github.com/PrakashAbd/samplespringboot.git'
    }
    stage('Compile-Package'){
       // Get maven home path
