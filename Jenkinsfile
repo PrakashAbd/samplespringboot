@@ -3,8 +3,15 @@ pipeline {
     //tools {
     //maven 'maven3'
  // }
-    node {
-  stage('SCM') {
+    
+    stages {
+        stage('Build') { 
+            steps {
+               sh 'mvn clean package'
+            }
+        }
+      
+        stage('SCM') {
     git 'https://github.com/foo/bar.git'
   }
   stage('SonarQube analysis') {
@@ -14,14 +21,6 @@ pipeline {
       sh "${scannerHome}/bin/sonar-scanner"
     }
   }
-}
-    stages {
-        stage('Build') { 
-            steps {
-               sh 'mvn clean package'
-            }
-        }
-      
         //stage('Test') { 
             //steps {
                 // 
