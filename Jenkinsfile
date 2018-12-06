@@ -10,17 +10,6 @@ pipeline {
                sh 'mvn clean package'
             }
         }
-      
-        stage('SCM') {
-    git 'https://github.com/foo/bar.git'
-  }
-  stage('SonarQube analysis') {
-    // requires SonarQube Scanner 2.8+
-    def scannerHome = tool 'SonarQube Scanner 2.8';
-    withSonarQubeEnv('My SonarQube Server') {
-      sh "${scannerHome}/bin/sonar-scanner"
-    }
-  }
         //stage('Test') { 
             //steps {
                 // 
@@ -37,5 +26,16 @@ pipeline {
    // sh 'while ! httping -qc1 http://localhost:10000 ; do sleep 1 ; done'
            }
         }
+        
+        stage('SCM') {
+    git 'https://github.com/foo/bar.git'
+  }
+  stage('SonarQube analysis') {
+    // requires SonarQube Scanner 2.8+
+    def scannerHome = tool 'SonarQube Scanner 2.8';
+    withSonarQubeEnv('My SonarQube Server') {
+      sh "${scannerHome}/bin/sonar-scanner"
+    }
+  }
     }
 }
