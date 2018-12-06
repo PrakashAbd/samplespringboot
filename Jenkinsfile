@@ -10,8 +10,8 @@ pipeline {
             }
         }
         stage('SonarQube Analysis'){
-            withSonarQubeEnv('SOnarQube'){
-                sh "${mvnHome/bin/mvn} sonar:sobar"
+            withSonarQubeEnv('SonarQube'){
+                sh "${mvnHome/bin/mvn} sonar:sonar"
             }def mvnHome = tool name: 'maven-3', type : 'maven'
         }
         //stage('Test') { 
