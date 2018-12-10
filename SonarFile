@@ -12,8 +12,8 @@ node{
         def mvnHome =  tool name: 'MavenPrjct', type: 'maven'
         withSonarQubeEnv('SonarQube') { 
           sh 'mvn sonar:sonar \
-          -Dsonar.host.url=http://jekai38211dns.eastus.cloudapp.azure.com \
-          -Dsonar.login=795e7bd8dcdeff3c705fb8657c918017c30d5bb7'
+          -Dsonar.host.url=http://gdjrp40237dns.eastus.cloudapp.azure.com:9000 \
+          -Dsonar.login=3fca1917e8136f80e6418f0a020c00f0c5b10734'
         }
     }
    
