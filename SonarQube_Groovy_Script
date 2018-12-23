@@ -1,0 +1,27 @@
+node{
+      try {
+      stage('SCM Checkout'){
+     git 'https://github.com/PrakashAbd/samplespringboot.git'
+   }
+   stage('Compile-Package'){
+      // Get maven home path
+      //mail body: 'Before Build', subject: 'From Fp', to: 'prakazsh1@gmail.com'
+      def mvnHome =  tool name: 'Maven', type: 'maven'   
+      sh "${mvnHome}/bin/mvn package"
+   }
+   stage('SonarQube Analysis') {
+        def mvnHome =  tool name: 'Maven', type: 'maven'
+        withSonarQubeEnv('Mine') { 
+            sh 'mvn sonar:sonar \
+                -Dsonar.host.url=http://104.211.158.213 \
+                -Dsonar.login=c10f7e22af9216fae959c7d0643b535b5b03fb58'
+        }
+    }
+    }
+      catch(err)
+   {
+      stage('Email Notification'){
+         mail body: 'Failure', subject: 'From Fp', to: 'prakazsh1@gmail.com'
+      }
+   }
+} 
