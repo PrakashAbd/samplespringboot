@@ -1,0 +1,56 @@
+node{
+   try{
+    def server =Artifactory.server 'Artifactory'
+    stage('SCM Checkout'){
+        git 'https://github.com/PrakashAbd/samplespringboot.git'
+   }
+    stage('Compile-Package'){
+      def mvnHome =  tool name: 'Maven', type: 'maven'   
+      sh "${mvnHome}/bin/mvn clean install"
+   }
+    /*stage('Build') {
+       sh " '${mvnHome}/bin/mvn' -Dmaven.test.failure.ignore clean package"
+   }*/
+    stage('SonarQube Analysis') {
+        def mvnHome =  tool name: 'Maven', type: 'maven'
+        withSonarQubeEnv('Kiran') { 
+            sh 'mvn sonar:sonar \
+                -Dsonar.host.url=http://kiran1.eastus.cloudapp.azure.com \
+                -Dsonar.login=28dc33d8ca7700fd3fb0edf0f198a20c09ae06cf'
+        }
+    }
+    stage("Quality Gate"){
+          timeout(time: 1, unit: 'HOURS') {
+              def qg = waitForQualityGate()
+              if (qg.status != 'OK') {
+                   error "Pipeline aborted due to quality gate failure: ${qg.status}"
+                  mail body:"${qg.status}",subject: 'Quality fail', to: 'prakashprakku1@gmail.com'
+                                    }
+                }
+        } 
+    stage('Artifactory upload') {
+       def uploadSpec = """
+                { "files": [ {
+                        "pattern": "/var/lib/jenkins/workspace/Mine/target/*.war", 
+                        "target": "Mine-snapshot" 
+                } ] }""" 
+        server.upload(uploadSpec) 
+    }
+        
+     stage('downloading artifact') 
+    { 
+        def downloadSpec="""
+                { "files":[ { 
+                        "pattern":"target/*.war", 
+                        "target":"/var/lib/jenkins/workspace/Mine/" 
+                } ] }""" 
+        server.download(downloadSpec)
+    }
+    }
+    catch(err)
+    {
+        stage('Email Notification'){
+            mail body: 'Failure', subject: 'From Fp', to: 'prakazsh1@gmail.com'
+      }
+   }
+} 
