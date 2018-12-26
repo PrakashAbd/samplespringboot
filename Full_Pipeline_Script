@@ -13,7 +13,7 @@ node{
    }*/
     stage('SonarQube Analysis') {
         def mvnHome =  tool name: 'Maven', type: 'maven'
-        withSonarQubeEnv('Kiran') { 
+        withSonarQubeEnv('SonarQube') { 
             sh 'mvn sonar:sonar \
                 -Dsonar.host.url=http://kiran1.eastus.cloudapp.azure.com \
                 -Dsonar.login=28dc33d8ca7700fd3fb0edf0f198a20c09ae06cf'
