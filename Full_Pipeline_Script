@@ -50,7 +50,7 @@ node{
     catch(err)
     {
         stage('Email Notification'){
-            mail body: 'Failure', subject: 'From Fp', to: 'prakazsh1@gmail.com'
+            mail body: 'Failure', subject: 'From Fp', to: 'prakashprakku1@gmail.com'
       }
    }
 } 
