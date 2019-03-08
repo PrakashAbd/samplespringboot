@@ -11,11 +11,7 @@ pipeline {
             }
         }
    
-        //stage('Test') { 
-            //steps {
-                // 
-            //}
-        //}
+        
         stage('Deploy') { 
            steps {
     //sh 'curl -X POST http://localhost:10000/shutdown || true'
