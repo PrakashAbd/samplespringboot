@@ -1,0 +1,103 @@
+node{
+   try{
+    def server =Artifactory.server 'Artifactory'
+    stage('SCM Checkout'){
+        git 'https://github.com/PrakashAbd/samplespringboot.git'
+   }
+    stage('Compile-Package'){
+      def mvnHome =  tool name: 'Maven', type: 'maven'   
+      sh "${mvnHome}/bin/mvn clean install"  
+   }
+    /*stage('Build') {
+       sh " '${mvnHome}/bin/mvn' -Dmaven.test.failure.ignore clean package"
+   }*/
+    stage('SonarQube Analysis') {
+        def mvnHome =  tool name: 'Maven', type: 'maven'  
+        withSonarQubeEnv('SonarQube1') { 
+            sh 'mvn sonar:sonar \
+                -Dsonar.host.url=http://jenkinsfrst123.westindia.cloudapp.azure.com \
+                -Dsonar.login=5f9a90aeb77292742139814770efca6c37dab06b'
+        }
+    }
+    stage("Quality Gate"){
+          timeout(time: 1, unit: 'HOURS') {
+              def qg = waitForQualityGate()
+              if (qg.status != 'OK') {
+                   error "Quality Gateway Failed: ${qg.status}"
+                  mail body:"${qg.status}",subject: 'Quality Gateway Failed', to: 'prakashprakku1@gmail.com'
+                            }
+                }
+        }
+    stage('Artifactory upload') {
+       def uploadSpec = """
+                { "files": [ {
+                        "pattern": "/var/lib/jenkins/workspace/Jira/target/*.war", 
+                        "target": "newone-snapshot" 
+                } ] }""" 
+        server.upload(uploadSpec) 
+    }
+    
+    stage('downloading artifact') 
+    { 
+        def downloadSpec="""
+                { "files":[ { 
+                        "pattern":"target/*.war", 
+                        "target":"/var/lib/jenkins/workspace/Jira/" 
+                } ] }""" 
+        server.download(downloadSpec)
+    }
+    stage('Deploy to tomcat') 
+    {
+        sh 'scp /var/lib/jenkins/workspace/Jira/target/*.war minduser@sonarqubefrst123.westindia.cloudapp.azure.com:/opt/tomcat/apache-tomcat-8.5.24/webapps'
+        /*sshagent(['sshKey']) {            
+            sh 'scp -o StrictHostKeyChecking=no /var/lib/jenkins/workspace/CI/target/*.war minduser@sonarqubefrst123.westindia.cloudapp.azure.com:/opt/tomcat/apache-tomcat-8.5.24/webapps'
+        }*/    
+    }
+    stage('comment'){
+	            withEnv(['JIRA_SITE=Jira']) {
+	                     jiraComment body: 'Build sucess', issueKey: 'SRIN-9'
+	                     //jiraAssignIssue site: 'Jira', idOrKey: 'SRIN-9', userName: 'admin'
+	              }
+	    }
+    }
+    catch(err)
+    {
+        stage("Jira Issue"){
+	            withEnv(['JIRA_SITE=Jira']) {
+	            def testIssue = [fields: [ project: [id: 10001],
+	                                 summary: 'New JIRA Issue Created',
+	                                 description: 'New JIRA Issue',
+	                                 issuetype: [name: 'Bug']]]
+	
+	        response = jiraNewIssue issue: testIssue
+	        jiraAssignIssue site: 'Jira', idOrKey: response.data.key, userName: 'Jegapriyamunieswaran'
+	        
+	        echo response.successful.toString()
+	        echo response.data.toString()
+	        }
+	    }
+	       
+	    stage('comment'){
+	            withEnv(['JIRA_SITE=Jira']) {
+	                     jiraComment body: 'Build failed', issueKey: response.data.key
+	                     //jiraAssignIssue site: 'Jira', idOrKey: response.data.key, userName: 'admin'
+	              }
+	    }
+	    
+	    /*stage('JIRA-transition') {
+	          withEnv(['JIRA_SITE=Jira']) {
+	            def transitionInput =
+	                [
+	                    transition: [
+	                            id: '31'                 
+	                            ]
+	                ]
+	            jiraTransitionIssue idOrKey: 'SRIN-9', input: transitionInput
+	        }
+	    }*/
+	    stage('Email Notification'){
+            mail body: 'Failure', subject: 'From Jira', to: 'prakashprakku1@gmail.com'
+      }
+	    currentBuild.result='FAILURE'
+    }
+} 
